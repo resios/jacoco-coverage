@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
+<idea-plugin version="2">
+    <name>JaCoCo coverage</name>
+    <depends optional="true">TestNG-J</depends>
+    <depends optional="true">JUnit</depends>
+    <depends>com.intellij.modules.java</depends>
+    <description>
+        <![CDATA[
+            Generate coverage report with JaCoCo when running unit tests
+        ]]>
+    </description>
+    <version>0.1</version>
+    <vendor>Andreas Resios</vendor>
+
+    <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Build+Number+Ranges for description -->
+    <idea-version since-build="107.105"/>
+
+    <application-components>
+    </application-components>
+
+    <project-components>
+        <component>
+            <implementation-class>org.jacoco.coverage.config.CoverageConfig</implementation-class>
+        </component>
+    </project-components>
+
+    <actions>
+        <group id="JaCoCoCoverage.ActionGroup" text="Coverage" description="JaCoCo coverage plugin" popup="true">
+            <action id="JaCoCoCoverage.Toggle" text="Enable coverage"
+                    description="Toggle coverage"
+                    class="org.jacoco.coverage.actions.ToggleCoverageAction">
+            </action>
+            <action id="JaCoCoCoverage.Clear" text="Clear coverage"
+                    description="Clear coverage data"
+                    class="org.jacoco.coverage.actions.ClearCoverageAction">
+            </action>
+            <action id="JaCoCoCoverage.GenerateReport" text="Generate report"
+                    description="Generate HTML coverage report"
+                    class="org.jacoco.coverage.actions.GenerateCoverageReportAction">
+            </action>
+            <action id="JaCoCoCoverage.AnnotateFile" text="Show coverage data"
+                    description="Show coverage data for current class"
+                    class="org.jacoco.coverage.actions.AnnotateFileWithCoverageAction">
+            </action>
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </group>
+
+    </actions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <projectConfigurable instance="org.jacoco.coverage.config.CoverageManager"/>
+
+        <java.programPatcher implementation="org.jacoco.coverage.execution.JaCoCoCoveragePatcher"/>
+    </extensions>
+</idea-plugin>
