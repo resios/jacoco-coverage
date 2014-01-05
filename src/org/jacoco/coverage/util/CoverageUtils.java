@@ -23,24 +23,29 @@ public class CoverageUtils {
 
     public static String getDefaultCoverageFile(Project project) {
         File coverageRootPath = getCoverageRootPath(project);
-        return coverageRootPath + File.separator + project.getName()  + ".coverage";
+        return coverageRootPath + File.separator + project.getName() + ".coverage";
     }
 
-    public static File getCoverageReportRoot(Project project){
+    public static File getCoverageReportRoot(Project project) {
         return new File(getCoverageRootPath(project), "report");
     }
 
     public static File getCoverageRootPath(Project project) {
         String path = "coverage";
         CoverageConfig instance = CoverageConfig.getInstance(project);
-        if(instance != null){
+        if (instance != null) {
             CoverageConfig.State state = instance.getState();
-            if(state != null){
+            if (state != null && state.coveragePath != null) {
                 path = state.coveragePath;
             }
         }
 
-        return new File(VfsUtil.virtualToIoFile(project.getBaseDir()), path);
+        VirtualFile baseDir = project.getBaseDir();
+        if (baseDir == null) {
+            return new File(FileUtil.getTempDirectory(), path);
+        } else {
+            return new File(VfsUtil.virtualToIoFile(baseDir), path);
+        }
     }
 
     public static CoverageSourceData getSourceData(Project project) {
