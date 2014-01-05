@@ -1,0 +1,8 @@
+# Intellij IDEA build directory
+/out/
+*.zip
+
+# Host specific config files
+*.iws
+*.ipr
+/.idea/
