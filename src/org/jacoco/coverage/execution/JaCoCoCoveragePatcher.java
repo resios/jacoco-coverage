@@ -64,6 +64,8 @@ public class JaCoCoCoveragePatcher extends JavaProgramPatcher {
         String agentPath = PathUtil.getJarPathForClass(JaCoCoCoveragePatcher.class);
         final File ourJar = new File(agentPath);
         final File pluginDir = ourJar.getParentFile();
-        return pluginDir.getPath() + File.separator + "lib" + File.separator + "jacocoagent.jar";
+        File pathInLib = new File(new File(pluginDir,"lib"), "jacocoagent.jar");
+        File pathInJar = new File(pluginDir,"jacocoagent.jar");
+        return pathInJar.exists() ? pathInJar.getPath() : pathInLib.getPath();
     }
 }
