@@ -5,10 +5,8 @@ import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.executors.DefaultRunExecutor;
-import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.runners.JavaProgramPatcher;
 import com.intellij.util.PathUtil;
-import com.theoryinpractice.testng.configuration.TestNGConfiguration;
 import org.jacoco.coverage.config.CoverageConfig;
 import org.jacoco.coverage.util.CoverageUtils;
 
@@ -18,6 +16,10 @@ public class JaCoCoCoveragePatcher extends JavaProgramPatcher {
 
     private boolean append = true;
     private static final String JACOCO_AGENT_PATH = "jacoco.agent.path";
+    private static final String[] TEST_CONFIG_CLASSES = new String[]{
+            "com.intellij.execution.junit.JUnitConfiguration",
+            "com.theoryinpractice.testng.configuration.TestNGConfiguration"
+    };
 
     @Override
     public void patchJavaParameters(Executor executor, RunProfile configuration, JavaParameters javaParameters) {
@@ -40,7 +42,15 @@ public class JaCoCoCoveragePatcher extends JavaProgramPatcher {
     }
 
     private boolean isTestConfiguration(RunProfile configuration) {
-        return (configuration instanceof JUnitConfiguration) || (configuration instanceof TestNGConfiguration);
+        for (String testConfigClass : TEST_CONFIG_CLASSES) {
+            try {
+                if(Class.forName(testConfigClass).isInstance(configuration)){
+                    return true;
+                }
+            } catch (ClassNotFoundException ignored) {
+            }
+        }
+        return false;
     }
 
     private String computeJaCoCoParams(RunConfiguration runConfiguration) {
@@ -64,8 +74,8 @@ public class JaCoCoCoveragePatcher extends JavaProgramPatcher {
         String agentPath = PathUtil.getJarPathForClass(JaCoCoCoveragePatcher.class);
         final File ourJar = new File(agentPath);
         final File pluginDir = ourJar.getParentFile();
-        File pathInLib = new File(new File(pluginDir,"lib"), "jacocoagent.jar");
-        File pathInJar = new File(pluginDir,"jacocoagent.jar");
+        File pathInLib = new File(new File(pluginDir, "lib"), "jacocoagent.jar");
+        File pathInJar = new File(pluginDir, "jacocoagent.jar");
         return pathInJar.exists() ? pathInJar.getPath() : pathInLib.getPath();
     }
 }

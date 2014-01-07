@@ -38,7 +38,7 @@ public class CoverageManager implements SearchableConfigurable, Configurable {
     }
 
     @Nullable
-    @Override
+//    @Override
     public Icon getIcon() {
         return null;
     }
