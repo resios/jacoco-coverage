@@ -2,6 +2,7 @@ package org.jacoco.coverage.util;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -18,6 +19,8 @@ import java.util.List;
 import java.util.Set;
 
 public class CoverageUtils {
+
+    private static final Logger LOG = Logger.getInstance("#org.jacoco.coverage.util.CoverageUtils");
 
     public static final String PLUGIN_TITLE = "JaCoCo Coverage";
 
@@ -54,23 +57,43 @@ public class CoverageUtils {
         CoverageSourceData sourceData = new CoverageSourceData();
         for (Module module : moduleManager.getModules()) {
             CompilerModuleExtension moduleExtension = CompilerModuleExtension.getInstance(module);
+            final boolean debugEnabled = LOG.isDebugEnabled();
+            if(debugEnabled){
+                LOG.debug("Computing classes directories for module " + module);
+            }
             Set<File> classesDirectory = Sets.newHashSet();
             if (moduleExtension != null) {
                 VirtualFile path = moduleExtension.getCompilerOutputPath();
+                if(debugEnabled){
+                    LOG.debug("Found compiler path " + path);
+                }
                 if (path != null) {
                     classesDirectory.add(VfsUtil.virtualToIoFile(path));
                 }
             }
 
+            if(debugEnabled){
+                LOG.debug("Class directories are " + classesDirectory);
+            }
             sourceData.setClassesDirectory(classesDirectory);
 
             ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
             List<File> sourceDirectories = Lists.newLinkedList();
+            if(debugEnabled){
+                LOG.debug("Computing sources directories for module " + module);
+            }
             for (VirtualFile root : rootManager.getSourceRoots(false)) {
+                if(debugEnabled){
+                    LOG.debug("Testing source path " + root);
+                }
                 File file = VfsUtil.virtualToIoFile(root);
                 if (file.exists() && file.canRead()) {
                     sourceDirectories.add(file);
                 }
+            }
+
+            if(debugEnabled){
+                LOG.debug("Source directories are " + sourceDirectories);
             }
             sourceData.setSourceDirectories(sourceDirectories);
         }

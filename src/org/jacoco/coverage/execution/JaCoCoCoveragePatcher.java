@@ -6,6 +6,7 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.JavaProgramPatcher;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.PathUtil;
 import org.jacoco.coverage.config.CoverageConfig;
 import org.jacoco.coverage.util.CoverageUtils;
@@ -13,6 +14,8 @@ import org.jacoco.coverage.util.CoverageUtils;
 import java.io.File;
 
 public class JaCoCoCoveragePatcher extends JavaProgramPatcher {
+
+    private static final Logger LOG = Logger.getInstance("#org.jacoco.coverage.execution.JaCoCoCoveragePatcher");
 
     private boolean append = true;
     private static final String JACOCO_AGENT_PATH = "jacoco.agent.path";
@@ -44,7 +47,7 @@ public class JaCoCoCoveragePatcher extends JavaProgramPatcher {
     private boolean isTestConfiguration(RunProfile configuration) {
         for (String testConfigClass : TEST_CONFIG_CLASSES) {
             try {
-                if(Class.forName(testConfigClass).isInstance(configuration)){
+                if (Class.forName(testConfigClass).isInstance(configuration)) {
                     return true;
                 }
             } catch (ClassNotFoundException ignored) {
@@ -76,6 +79,9 @@ public class JaCoCoCoveragePatcher extends JavaProgramPatcher {
         final File pluginDir = ourJar.getParentFile();
         File pathInLib = new File(new File(pluginDir, "lib"), "jacocoagent.jar");
         File pathInJar = new File(pluginDir, "jacocoagent.jar");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("JaCoCo agent path: " + pathInJar);
+        }
         return pathInJar.exists() ? pathInJar.getPath() : pathInLib.getPath();
     }
 }
