@@ -26,7 +26,7 @@
     </project-components>
 
     <actions>
-        <group id="JaCoCoCoverage.ActionGroup" text="Coverage" description="JaCoCo coverage plugin" popup="true">
+        <group id="JaCoCoCoverage.ActionGroup" text="Coverage" description="JaCoCo coverage plugin" popup="true" icon="/images/coverage.png">
             <action id="JaCoCoCoverage.Toggle" text="Enable coverage"
                     description="Toggle coverage"
                     class="org.jacoco.coverage.actions.ToggleCoverageAction">
@@ -44,6 +44,7 @@
                     class="org.jacoco.coverage.actions.AnnotateFileWithCoverageAction">
             </action>
             <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <add-to-group group-id="EditorPopupMenu" relative-to-action="CompareClipboardWithSelection" anchor="before"/>
         </group>
 
     </actions>
