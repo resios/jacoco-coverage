@@ -6,6 +6,8 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -14,6 +16,7 @@ import com.intellij.psi.PsiJavaFile;
 import com.intellij.testIntegration.TestFinderHelper;
 import org.jacoco.coverage.util.CoverageUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkEvent;
 import java.io.File;
@@ -40,7 +43,6 @@ public class AnnotateFileWithCoverageAction extends AnAction {
         if (psiFile instanceof PsiJavaFile) {
             PsiJavaFile javaFile = (PsiJavaFile) psiFile;
             if (TestFinderHelper.isTest(javaFile)) {
-
                 List<PsiElement> classesForTest = TestFinderHelper.findClassesForTest(javaFile);
                 for (PsiElement element : classesForTest) {
                     if (element != null && element.getContainingFile() instanceof PsiJavaFile) {
@@ -49,30 +51,41 @@ public class AnnotateFileWithCoverageAction extends AnAction {
                     }
                 }
             }
-
-            File coverageRootPath = CoverageUtils.getCoverageReportRoot(project);
-            if (coverageRootPath.exists()) {
-                String packageName = javaFile.getPackageName();
-                File url = new File(coverageRootPath, packageName);
-                VirtualFile virtualFile = javaFile.getVirtualFile();
-                boolean wasFound = false;
-                if (virtualFile != null) {
-                    url = new File(url, virtualFile.getName() + ".html");
-                    if (url.exists()) {
-                        BrowserUtil.launchBrowser(url.toURI().getPath());
-                        wasFound = true;
-                    }
-                }
-                if (!wasFound) {
-                    Notifications.Bus.notify(getMissingFileNotification(virtualFile), project);
-                }
-            } else {
-                Notifications.Bus.notify(getMissingReportNotification(e), project);
-            }
+            showCoverageForFile(javaFile, e, project);
         }
     }
 
-    private Notification getMissingFileNotification(VirtualFile url) {
+    private void showCoverageForFile(PsiJavaFile javaFile, AnActionEvent e, Project project) {
+        VirtualFile virtualFile = javaFile.getVirtualFile();
+        if (virtualFile == null) {
+            Notifications.Bus.notify(getMissingFileNotification(virtualFile), project);
+            return;
+        }
+        Module module = ModuleUtil.findModuleForFile(virtualFile, project);
+
+        if(module == null){
+            return;
+        }
+
+        File coverageRootPath = CoverageUtils.getCoverageReportRoot(module, project);
+        if (coverageRootPath.exists()) {
+            String packageName = javaFile.getPackageName();
+            File url = new File(coverageRootPath, packageName);
+            boolean wasFound = false;
+            url = new File(url, virtualFile.getName() + ".html");
+            if (url.exists()) {
+                BrowserUtil.launchBrowser(url.toURI().getPath());
+                wasFound = true;
+            }
+            if (!wasFound) {
+                Notifications.Bus.notify(getMissingFileNotification(virtualFile), project);
+            }
+        } else {
+            Notifications.Bus.notify(getMissingReportNotification(e), project);
+        }
+    }
+
+    private Notification getMissingFileNotification(@Nullable VirtualFile url) {
         String title = "File not found";
         String content = "No coverage was found for " + (url != null ? url.getPresentableUrl() : "<null>");
 
@@ -84,7 +97,7 @@ public class AnnotateFileWithCoverageAction extends AnAction {
                 CoverageUtils.PLUGIN_TITLE,
                 "Coverage report missing",
                 "Please compile the report by clicking <a href='#'>here</a> and then retry.",
-                NotificationType.ERROR,
+                NotificationType.WARNING,
                 new NotificationListener() {
                     @Override
                     public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
